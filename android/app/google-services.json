@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1036347585767",
+    "project_id": "parentdriverapp-b4510",
+    "storage_bucket": "parentdriverapp-b4510.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1036347585767:android:fa0b37815f8aa375aa9e42",
+        "android_client_info": {
+          "package_name": "com.example.parent_driver_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJJ86cNjoQgK41OwRTnVd3kV9bfYrlrKs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
