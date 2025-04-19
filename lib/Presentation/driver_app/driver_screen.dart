@@ -16,15 +16,47 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
   Marker? _busMarker;
   bool isSharing = false;
   StreamSubscription<LatLng>? locationSub;
+  BitmapDescriptor? _busIcon;
+  List<LatLng> polylineCoordinates = [];
+  Set<Polyline> _polylines = {};
 
+  @override
+  void initState() {
+    super.initState();
+    _loadBusIcon();
+  }
+
+  Future<void> _loadBusIcon() async {
+    _busIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(1, 1
+      )),
+      'assets/bus.png',
+    );
+  }
   void _startSharingLocation() {
     isSharing = true;
+
     locationSub = ref.read(driverLocationProvider.notifier).startSharing().listen((loc) {
       setState(() {
+        // Add current location to polyline path
+        polylineCoordinates.add(loc);
+
+        //  Update polylines set
+        _polylines = {
+          Polyline(
+            polylineId: const PolylineId("route"),
+            color: Colors.blue,
+            width: 5,
+            points: polylineCoordinates,
+          )
+        };
         _busMarker = Marker(
           markerId: const MarkerId("bus"),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
           position: loc,
+          icon: _busIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure), // fallback if icon not loaded
+          anchor: Offset(0.5, 0.5),
+          rotation: 0,
+          flat: true,
         );
         _mapController.animateCamera(CameraUpdate.newLatLng(loc));
       });
@@ -35,6 +67,10 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
     isSharing = false;
     locationSub?.cancel();
     ref.read(driverLocationProvider.notifier).stopSharing();
+    setState(() {
+      polylineCoordinates.clear();
+      _polylines.clear();
+    });
   }
 
   @override
@@ -57,6 +93,7 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
             initialCameraPosition: CameraPosition(target: initialPosition, zoom: 16),
             onMapCreated: (controller) => _mapController = controller,
             markers: _busMarker != null ? {_busMarker!} : {},
+            polylines: _polylines, // ✅ Add this line
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
           ),

@@ -11,7 +11,7 @@ class LocationModel extends LocationEntity {
   }
 
   Map<String, dynamic> toJson() => {
-    'latitude': latitude,
-    'longitude': longitude,
-  };
+        'latitude': latitude,
+        'longitude': longitude,
+      };
 }
