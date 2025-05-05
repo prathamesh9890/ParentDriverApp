@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'provider/driver_location_provider.dart';
+import 'dart:ui' as ui;
 
 class DriverScreen extends ConsumerStatefulWidget {
   const DriverScreen({super.key});
@@ -27,12 +29,26 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
   }
 
   Future<void> _loadBusIcon() async {
-    _busIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(1, 1
-      )),
-      'assets/bus.png',
+    final ByteData data = await rootBundle.load('assets/bus.png');
+    final codec = await ui.instantiateImageCodec(
+      data.buffer.asUint8List(),
+      targetWidth: 160,  // 👈 Resize width
+      targetHeight: 160, // 👈 Resize height
     );
+    final frame = await codec.getNextFrame();
+    final byteData = await frame.image.toByteData(format: ui.ImageByteFormat.png);
+    final resizedBytes = byteData!.buffer.asUint8List();
+
+    _busIcon = BitmapDescriptor.fromBytes(resizedBytes);
   }
+  //
+  // Future<void> _loadBusIcon() async {
+  //   _busIcon = await BitmapDescriptor.fromAssetImage(
+  //     const ImageConfiguration(size: Size(24, 24)), // 👈 Small icon size
+  //     'assets/bus.png',
+  //   );
+  // }
+
   void _startSharingLocation() {
     isSharing = true;
 
@@ -41,7 +57,7 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
         // Add current location to polyline path
         polylineCoordinates.add(loc);
 
-        //  Update polylines set
+        // Update polylines set
         _polylines = {
           Polyline(
             polylineId: const PolylineId("route"),
@@ -50,6 +66,8 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
             points: polylineCoordinates,
           )
         };
+
+        // Update bus marker position
         _busMarker = Marker(
           markerId: const MarkerId("bus"),
           position: loc,
@@ -58,6 +76,8 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
           rotation: 0,
           flat: true,
         );
+
+        // Move the camera to the new position
         _mapController.animateCamera(CameraUpdate.newLatLng(loc));
       });
     });
@@ -114,7 +134,7 @@ class _DriverScreenState extends ConsumerState<DriverScreen> {
                 textStyle: const TextStyle(fontSize: 18),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
